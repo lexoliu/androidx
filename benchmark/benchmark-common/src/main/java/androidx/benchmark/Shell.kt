@@ -728,7 +728,10 @@ private object ShellImpl {
     var isSessionRooted = false
 
     /** When true, su is available for running commands and scripts as root. */
-    var isSuAvailable = false
+    val isSuAvailable: Boolean
+        get() = suCommand != null
+
+    private var suCommand: String? = null
 
     init {
         // b/268107648: UiAutomation always runs on user 0 so shell cannot access other user data.
@@ -746,12 +749,11 @@ private object ShellImpl {
         isSessionRooted = executeCommandUnsafe("id").contains("uid=0(root)")
         // use a script below, since direct `su` command failure brings down this process
         // on some API levels (and can fail even on userdebug builds)
-        isSuAvailable =
-            createShellScript(script = "su root id", stdin = null)
-                .start()
-                .getOutputAndClose()
-                .stdout
-                .contains("uid=0(root)")
+        if (!isSessionRooted) {
+            suCommand = findSuCommand { command ->
+                createShellScript(script = command, stdin = null).start().getOutputAndClose().stdout
+            }
+        }
     }
 
     /**
@@ -770,7 +772,7 @@ private object ShellImpl {
         trace("executeCommandNonBlocking $cmd".take(127)) {
             return@trace uiAutomation.executeShellCommand(
                 if (!isSessionRooted && isSuAvailable) {
-                    "su root $cmd"
+                    "$suCommand $cmd"
                 } else {
                     cmd
                 }
