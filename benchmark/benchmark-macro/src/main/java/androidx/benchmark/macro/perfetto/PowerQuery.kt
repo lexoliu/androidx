@@ -31,7 +31,7 @@ internal object PowerQuery {
         SELECT
             t.name,
             max(c.value) - min(c.value) AS energyUws,
-            (max(c.value) - min(c.value))/((max(c.ts) - min(c.ts)) / 1000000) AS powerUs
+            (max(c.value) - min(c.value))/((max(c.ts) - min(c.ts)) / 1000000000.0) AS powerUw
         FROM counter c
         JOIN counter_track t ON c.track_id = t.id
         WHERE t.name GLOB 'power.*'
@@ -134,7 +134,7 @@ internal object PowerQuery {
                 ComponentMeasurement(
                     name = (it["name"] as String).camelCase(),
                     energyUws = it["energyUws"] as Double,
-                    powerUw = it["powerUs"] as Double,
+                    powerUw = it["powerUw"] as Double,
                 )
             }
             .toList()
