@@ -90,14 +90,14 @@ class PowerMetricTest {
         assertEqualMeasurements(
             expected =
                 listOf(
-                    Measurement("powerCategoryCpuUw", 80.94090814845532),
-                    Measurement("powerCategoryDisplayUw", 208.77752436243003),
-                    Measurement("powerCategoryGpuUw", 13.799502384408045),
-                    Measurement("powerCategoryMemoryUw", 73.69686916856728),
-                    Measurement("powerCategoryMachineLearningUw", 10.527679867302508),
-                    Measurement("powerCategoryNetworkUw", 123.74248393116318),
-                    Measurement("powerUncategorizedUw", 25.454281567489115),
-                    Measurement("powerTotalUw", 536.9392494298155),
+                    Measurement("powerCategoryCpuUw", 80940.90814845532000),
+                    Measurement("powerCategoryDisplayUw", 208777.52436243003000),
+                    Measurement("powerCategoryGpuUw", 13799.502384408045000),
+                    Measurement("powerCategoryMemoryUw", 73696.86916856728000),
+                    Measurement("powerCategoryMachineLearningUw", 10527.679867302508000),
+                    Measurement("powerCategoryNetworkUw", 123742.48393116318000),
+                    Measurement("powerUncategorizedUw", 25454.281567489115000),
+                    Measurement("powerTotalUw", 536939.2494298155000),
                 ),
             observed = actualMetrics,
             threshold = 0.00001,
@@ -126,13 +126,13 @@ class PowerMetricTest {
         assertEqualMeasurements(
             expected =
                 listOf(
-                    Measurement("powerCategoryCpuUw", 80.94090814845532),
-                    Measurement("powerCategoryDisplayUw", 208.77752436243003),
-                    Measurement("powerCategoryMemoryUw", 73.69686916856728),
-                    Measurement("powerCategoryNetworkUw", 123.74248393116318),
-                    Measurement("powerComponentSystemFabricUw", 25.454281567489115),
-                    Measurement("powerUnselectedUw", 24.327182251710553),
-                    Measurement("powerTotalUw", 536.9392494298155),
+                    Measurement("powerCategoryCpuUw", 80940.90814845532000),
+                    Measurement("powerCategoryDisplayUw", 208777.52436243003000),
+                    Measurement("powerCategoryMemoryUw", 73696.86916856728000),
+                    Measurement("powerCategoryNetworkUw", 123742.48393116318000),
+                    Measurement("powerComponentSystemFabricUw", 25454.281567489115000),
+                    Measurement("powerUnselectedUw", 24327.182251710553000),
+                    Measurement("powerTotalUw", 536939.2494298155000),
                 ),
             observed = actualMetrics,
             threshold = 0.00001,
