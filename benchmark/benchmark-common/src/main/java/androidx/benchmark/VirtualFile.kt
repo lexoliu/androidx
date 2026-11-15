@@ -348,14 +348,21 @@ private class RootState(val sessionRooted: Boolean, val suCommand: String?) {
             InstrumentationRegistry.getInstrumentation().uiAutomation
 
         fun check(): RootState {
-            if (!DeviceInfo.isRooted) return RootState(false, null)
             val sessionRooted =
                 uiAutomation
                     .executeShellCommand("id")
                     .fullyReadInputStream()
                     .contains("uid=0(root)")
             val suCommand =
-                if (sessionRooted) null
+                // Root managers may expose su to the shell but hide it from the app process.
+                if (
+                    sessionRooted ||
+                        uiAutomation
+                            .executeShellCommand("which su")
+                            .fullyReadInputStream()
+                            .isBlank()
+                )
+                    null
                 else
                     findSuCommand { command ->
                         uiAutomation.executeShellCommand(command).fullyReadInputStream()

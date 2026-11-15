@@ -50,10 +50,14 @@ class ShellRootTest {
     @Test(timeout = 10_000)
     @SdkSuppress(minSdkVersion = 31)
     fun initializeAndAccessShellFile() {
-        assumeTrue(DeviceInfo.isRooted)
+        assumeTrue(Shell.isSessionRooted())
         val file = ShellFile.inTempDir("benchmark-root-shell-test.txt")
         try {
             file.writeText("shell file contents\n")
+            assertEquals(
+                "0",
+                Shell.executeScriptCaptureStdout("stat -c %u ${file.absolutePath}").trim(),
+            )
             assertEquals("shell file contents\n", file.readText())
         } finally {
             file.delete()
