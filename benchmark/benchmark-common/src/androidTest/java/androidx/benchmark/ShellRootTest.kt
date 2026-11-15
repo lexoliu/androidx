@@ -17,6 +17,7 @@
 package androidx.benchmark
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SdkSuppress
 import androidx.test.filters.SmallTest
 import kotlin.test.assertEquals
 import org.junit.Assume.assumeTrue
@@ -44,5 +45,18 @@ class ShellRootTest {
                 stdin = "input with spaces\n",
             ),
         )
+    }
+
+    @Test(timeout = 10_000)
+    @SdkSuppress(minSdkVersion = 31)
+    fun initializeAndAccessShellFile() {
+        assumeTrue(DeviceInfo.isRooted)
+        val file = ShellFile.inTempDir("benchmark-root-shell-test.txt")
+        try {
+            file.writeText("shell file contents\n")
+            assertEquals("shell file contents\n", file.readText())
+        } finally {
+            file.delete()
+        }
     }
 }

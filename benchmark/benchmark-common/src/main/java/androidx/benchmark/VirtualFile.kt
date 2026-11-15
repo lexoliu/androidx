@@ -342,34 +342,41 @@ private class CounterOutputStream(private val output: OutputStream) : OutputStre
     }
 }
 
-private class RootState(val sessionRooted: Boolean, val suAvailable: Boolean) {
+private class RootState(val sessionRooted: Boolean, val suCommand: String?) {
     companion object {
         private val uiAutomation: UiAutomation =
             InstrumentationRegistry.getInstrumentation().uiAutomation
 
-        fun check() =
-            RootState(
-                sessionRooted =
-                    DeviceInfo.isRooted &&
-                        uiAutomation
-                            .executeShellCommand("id")
-                            .fullyReadInputStream()
-                            .contains("uid=0(root)"),
-                suAvailable =
-                    DeviceInfo.isRooted &&
-                        uiAutomation
-                            .executeShellCommand("su root id")
-                            .fullyReadInputStream()
-                            .contains("uid=0(root)"),
-            )
+        fun check(): RootState {
+            if (!DeviceInfo.isRooted) return RootState(false, null)
+            val sessionRooted =
+                uiAutomation
+                    .executeShellCommand("id")
+                    .fullyReadInputStream()
+                    .contains("uid=0(root)")
+            val suCommand =
+                if (sessionRooted) null
+                else
+                    findSuCommand { command ->
+                        uiAutomation.executeShellCommand(command).fullyReadInputStream()
+                    }
+            return RootState(sessionRooted, suCommand)
+        }
     }
 
     fun maybeRootify(cmd: String) =
         trace("buildCommand $cmd".take(127)) {
-            if (!sessionRooted && suAvailable) {
-                "su root $cmd"
+            if (!sessionRooted && suCommand != null) {
+                "$suCommand $cmd"
             } else {
                 cmd
             }
         }
 }
+
+internal fun findSuCommand(executeCommand: (String) -> String): String? =
+    // KernelSU can treat positional commands as an interactive shell and wait for input.
+    // AOSP su does not support -c, but executes positional arguments directly.
+    listOf("su root -c", "su root").firstOrNull { command ->
+        executeCommand("$command id").contains("uid=0(root)")
+    }
