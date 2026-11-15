@@ -730,6 +730,8 @@ private object ShellImpl {
     /** When true, su is available for running commands and scripts as root. */
     var isSuAvailable = false
 
+    private var suCommand = "su root"
+
     init {
         // b/268107648: UiAutomation always runs on user 0 so shell cannot access other user data.
         // This behavior was introduced with FUSE on api 30. Before then, shell could access any
@@ -746,13 +748,25 @@ private object ShellImpl {
         isSessionRooted = executeCommandUnsafe("id").contains("uid=0(root)")
         // use a script below, since direct `su` command failure brings down this process
         // on some API levels (and can fail even on userdebug builds)
-        isSuAvailable =
-            createShellScript(script = "su root id", stdin = null)
-                .start()
-                .getOutputAndClose()
-                .stdout
-                .contains("uid=0(root)")
+        if (!isSessionRooted) {
+            // KernelSU requires -c: a positional command can start an interactive shell and
+            // leave UiAutomation waiting for EOF. AOSP su instead executes its positional
+            // arguments directly, so retain that form when the -c probe is unsupported.
+            if (probeSu("su root -c")) {
+                suCommand = "su root -c"
+                isSuAvailable = true
+            } else {
+                isSuAvailable = probeSu(suCommand)
+            }
+        }
     }
+
+    private fun probeSu(command: String): Boolean =
+        createShellScript(script = "$command id", stdin = null)
+            .start()
+            .getOutputAndClose()
+            .stdout
+            .contains("uid=0(root)")
 
     /**
      * Reimplementation of UiAutomator's Device.executeShellCommand, to avoid the UiAutomator
@@ -770,7 +784,7 @@ private object ShellImpl {
         trace("executeCommandNonBlocking $cmd".take(127)) {
             return@trace uiAutomation.executeShellCommand(
                 if (!isSessionRooted && isSuAvailable) {
-                    "su root $cmd"
+                    "$suCommand $cmd"
                 } else {
                     cmd
                 }
